@@ -3,7 +3,7 @@
 > **A fast, private, and visually polished cross-platform local disk usage analyzer.**  
 > Built with **Tauri v2**, **Rust**, **React**, and **TypeScript**.
 
-[![Build and Release](https://github.com/your-username/disklens/actions/workflows/build.yml/badge.svg)](https://github.com/your-username/disklens/actions)
+[![Build and Release](https://github.com/shakeer7/disklens/actions/workflows/build.yml/badge.svg)](https://github.com/shakeer7/disklens/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-brightgreen.svg)]()
 
@@ -54,7 +54,7 @@ Disklens separates heavy filesystem operations from UI rendering:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/disklens.git
+git clone https://github.com/shakeer7/disklens.git
 cd disklens
 
 # 2. Install dependencies
