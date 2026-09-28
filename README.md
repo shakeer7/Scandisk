@@ -1,118 +1,108 @@
 # Disklens 🔍
 
-> **A fast, private, and visually polished cross-platform local disk usage analyzer.**  
-> Built with **Tauri v2**, **Rust**, **React**, and **TypeScript**.
+> **A fast, beautiful, and private local disk usage analyzer for Windows, macOS, and Linux.**  
+> Effortlessly visualize what is taking up space on your hard drive and clean it up safely.
 
-[![Build and Release](https://github.com/shakeer7/disklens/actions/workflows/build.yml/badge.svg)](https://github.com/shakeer7/disklens/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-brightgreen.svg)]()
+[![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local%20%26%20Offline-success.svg)]()
+
+---
+
+## 📸 Disklens in Action on Windows
+
+![Disklens Dashboard on Windows](docs/screenshots/disklens-windows.png)
+
+---
+
+## 💡 What is Disklens?
+
+Have you ever wondered **"Why is my hard drive full?"** or spent hours digging through nested folders trying to find massive files?
+
+**Disklens** is a modern desktop utility designed to solve that problem instantly:
+- **Instant Visual Breakdown**: See exactly which folders and file types consume the most gigabytes using an interactive, color-coded storage map (Treemap) and charts.
+- **Lightning Fast**: Powered by a native multithreaded Rust engine, Disklens scans hundreds of thousands of files across your drive in seconds without freezing your computer.
+- **100% Private**: All scanning and calculations happen locally in memory on your PC. **No files, filenames, or disk telemetry are ever uploaded anywhere.**
+- **Safe Cleanup**: Discover space-hogging files and move them to your system **Recycle Bin / Trash** with one click. Never deletes files permanently without confirmation.
 
 ---
 
 ## 🌟 Key Features
 
-- **⚡ Blazing Fast Multithreaded Scanning**: Powered by Rust and `jwalk`, scanning thousands of files per second asynchronously without freezing the interface.
-- **🗺️ Interactive Treemap**: Visually explore your filesystem by disk consumption. Click any folder tile to drill down with instant breadcrumb navigation.
-- **📊 File Type Breakdown & Clickable Charts**: Donut chart distribution of storage by extension. Click any slice to inspect largest files of that type.
-- **📁 Folder Analysis**: Dedicated folders view showing item counts, sizes, and deep-scan actions.
-- **🔍 Global Search**: Rapidly find files across your entire scanned directory by keyword or extension.
-- **🧹 Smart Cleanup**: Identify large temporary files, logs, and caches with safe one-click OS Recycle Bin / Trash support.
-- **🎨 3 Visual Aesthetics**:
-  - **Material Design**: Clean, elevated surfaces and crisp typography.
-  - **Glassmorphism**: Frosted glass panels with subtle blur and translucent borders.
-  - **Neumorphism**: Soft, sculpted light & dark surfaces.
-- **🌙 First-Class Dark Mode**: Effortlessly toggle between light and dark modes with persisted local state.
-- **🔒 100% Private & Local**: **Your data never leaves your computer.** Disklens has zero cloud backend, zero tracking, and zero telemetry.
+### 📊 1. Comprehensive Dashboard
+- **Disk Overview**: View total capacity, used space, free space, and usage percentage for any drive (e.g., `C:\`, `F:\`) or folder.
+- **Live Metrics**: Real-time counter of total folder size, file count, and folder count.
+
+### 🗺️ 2. Interactive Storage Treemap
+- Represents files and directories as proportional rectangles—the bigger the box, the more disk space it consumes.
+- **Drill-Down Navigation**: Click on any folder rectangle to instantly dive inside that directory and recalculate the space distribution.
+- **Breadcrumbs**: Seamlessly navigate back up through the folder hierarchy.
+
+### 🍩 3. File Types Breakdown & Clickable Charts
+- Interactive donut chart categorizing storage across extensions (Videos, Documents, Archives, Disk Images, etc.).
+- **Click to Filter**: Click any slice in the chart to immediately view all files belonging to that category.
+
+### 📁 4. Folders Explorer
+- Displays immediate subdirectories with item counts and disk size.
+- Direct quick-actions to **Scan Folder** (re-scan into that folder) or **Open in OS** (opens native Windows File Explorer).
+
+### 📄 5. Largest Files Finder
+- Identifies the top largest individual files across your scanned drive.
+- Easily sort, reveal their path in File Explorer, or safely send them to the Recycle Bin.
+
+### 🔍 6. Global File Search
+- Instantly crawl thousands of files in your selected directory to find files matching any keyword or extension.
+
+### 🧹 7. Smart Cleanup Experience
+- Automatically highlights large temporary files, logs, and caches (`.tmp`, `.log`, `.bak`, `.iso`, `.dmg`).
+- Safe deletion via your operating system's Recycle Bin / Trash mechanism.
+
+### 🎨 8. Customizable Themes & Dark Mode
+- Supports 3 tailored visual aesthetics:
+  - **Material Design**: Clean cards with familiar, clear controls.
+  - **Glassmorphism**: Translucent frosted glass with blur and sleek borders.
+  - **Neumorphism**: Soft sculpted light and dark surfaces.
+- Full support for **Light** and **Dark** modes with persistent local saving.
 
 ---
 
-## 📐 Architecture
+## 📥 Download & Install (For Users)
 
-Disklens separates heavy filesystem operations from UI rendering:
+> **Zero setup required.** No command line, Node.js, or Rust needed. Simply download the installer for your computer:
 
-```
-[ User UI ]
-    ↓
-[ React + TypeScript (Vite) ]  ← Charts, Treemap, Themes, Navigation
-    ↓ (Tauri IPC Bridge)
-[ Rust Scanning Engine ]       ← Multithreaded jwalk, sysinfo, trash crate
-    ↓
-[ Local Filesystem ]
-```
-
----
-
-## 📥 Download & Install (For End Users)
-
-> **Zero setup required.** You do **not** need Node.js, Rust, or any developer tools installed. Simply download the standalone installer for your operating system:
-
-👉 **[Download the Latest Version from Releases](https://github.com/shakeer7/disklens/releases)**
+👉 **[Download the Latest Release](https://github.com/shakeer7/disklens/releases/latest)**
 
 ### 🪟 Windows
-1. Download **`Disklens-Setup.exe`**.
-2. Double-click the installer and follow the setup wizard.
-3. Launch **Disklens** from your Start Menu or Desktop shortcut.
+1. Download **`Disklens_0.1.0_x64-setup.exe`**.
+2. Double-click the installer and complete the setup.
+3. Open **Disklens** from your Start Menu or Desktop shortcut.
 
 ### 🍎 macOS
-1. Download **`Disklens.dmg`** (Apple Silicon `aarch64` for M1/M2/M3/M4 or Intel `x86_64`).
+1. Download **`Disklens_0.1.0_aarch64.dmg`** (for Apple Silicon M1/M2/M3/M4) or Intel version.
 2. Open the downloaded `.dmg` and drag the **Disklens** icon into your **Applications** folder.
-3. Open Disklens from Launchpad, Spotlight, or Finder.
+3. Launch Disklens from Launchpad or Spotlight.
 
 ### 🐧 Linux
-1. Download **`Disklens.AppImage`** or the **`.deb`** package.
-2. For AppImage: Right-click → Properties → Allow executing file as program (or `chmod +x`), then double-click to run immediately.
+1. Download **`Disklens_0.1.0_amd64.AppImage`** or **`.deb`**.
+2. For AppImage: Make executable (`chmod +x Disklens*.AppImage`) and double-click to run.
 
 ---
 
-## 🛠️ Building from Source (For Developers)
+## 📖 How to Use Disklens
 
-If you wish to contribute or build the application from source code:
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org) (v18 or v20+)
-- [Rust & Cargo](https://rustup.rs) (stable)
-- Platform C++ build tools (Visual Studio C++ Build Tools on Windows, Xcode CLI on macOS)
-
-### Local Development Setup
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/shakeer7/disklens.git
-cd disklens
-
-# 2. Install dependencies
-npm install
-
-# 3. Run in development mode
-npm run tauri dev
-```
-
-### Production Build
-
-To compile a standalone installer and executable:
-
-```bash
-npm run tauri build
-```
-
-The generated installers will be located in:
-- **Windows**: `src-tauri/target/release/bundle/nsis/Disklens-Setup.exe`
-- **macOS**: `src-tauri/target/release/bundle/dmg/Disklens.dmg`
-- **Linux**: `src-tauri/target/release/bundle/deb/` / `appimage/`
+1. **Select a Disk or Folder**: Click the **"Scan Disk"** or **"Select Folder"** button in the header and choose any drive (e.g. `C:\`, external drive) or directory.
+2. **Watch the Scan**: The live counter shows files and folders as they are processed in real time.
+3. **Explore Visually**: Click any folder tile on the Treemap to drill in, or switch tabs on the left sidebar to inspect **Folders**, **Largest Files**, and **File Types**.
+4. **Free Up Space**: Head to the **Cleanup** tab to safely clean up unnecessary large files into the Recycle Bin.
 
 ---
 
 ## 🛡️ Privacy Guarantee
 
 > **Your data stays on your device.**  
-> Disklens does not upload your files, filenames, or disk information anywhere. All calculations are performed strictly locally in memory.
+> Disklens does not collect analytics, track usage, or upload any file paths, names, or disk information to any remote server or cloud service.
 
 ---
-
-## 🤝 Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 📄 License
 
