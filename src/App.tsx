@@ -119,7 +119,7 @@ export default function App() {
         setCurrentPath(history[history.length - 1]);
         setHistory(prev => prev.slice(0, -1));
       } else if (history.length === 0) {
-        setCurrentPath(null);
+        setCurrentPath('');
       }
     } finally {
       if (unlisten) unlisten();
@@ -149,19 +149,6 @@ export default function App() {
       } catch (e) {
         alert(`Failed to move file to trash: ${e}`);
       }
-    }
-  };
-
-  const handleSearch = async () => {
-    if (!stats || !searchQuery) return;
-    setIsSearching(true);
-    try {
-      const results = await invoke('search_files', { path: stats.root_path, query: searchQuery });
-      setSearchResults(results as any[]);
-    } catch (e) {
-      alert(`Search failed: ${e}`);
-    } finally {
-      setIsSearching(false);
     }
   };
 
@@ -356,15 +343,15 @@ export default function App() {
                         aspectRatio={4 / 3}
                         stroke="var(--bg-app)"
                         fill="var(--primary)"
-                        onClick={(e) => {
+                        onClick={(e: any) => {
                           // Drill down on click
                           if (e && e.is_dir && e.path) {
-                            scanFolder(e.path);
+                            scanFolder(String(e.path));
                           }
                         }}
                         style={{ cursor: 'pointer' }}
                       >
-                        <RechartsTooltip formatter={(value: number) => formatBytes(value)} />
+                        <RechartsTooltip formatter={(value: any) => formatBytes(Number(value) || 0)} />
                       </Treemap>
                     </ResponsiveContainer>
                   ) : (
@@ -392,7 +379,7 @@ export default function App() {
                             <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                           ))}
                         </Pie>
-                        <RechartsTooltip formatter={(value: number) => formatBytes(value)} />
+                        <RechartsTooltip formatter={(value: any) => formatBytes(Number(value) || 0)} />
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
@@ -492,7 +479,7 @@ export default function App() {
                         <td style={{ fontWeight: 600 }}>{formatBytes(folder.size)}</td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                            <button className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => scanPath(folder.path)} title="Scan Folder">
+                            <button className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => scanFolder(folder.path)} title="Scan Folder">
                               <Search size={14} />
                             </button>
                             <button className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => shellOpen(folder.path)} title="Open in OS">
@@ -530,11 +517,11 @@ export default function App() {
                       }}
                       style={{ cursor: 'pointer' }}
                     >
-                      {fileTypeData.map((entry, index) => (
+                      {fileTypeData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={`hsl(${(index * 360) / 8}, 70%, 50%)`} />
                       ))}
                     </Pie>
-                    <RechartsTooltip formatter={(val: number) => formatBytes(val)} />
+                    <RechartsTooltip formatter={(val: any) => formatBytes(Number(val) || 0)} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
