@@ -50,9 +50,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__
+          tagName: v__VERSION__
           releaseName: 'Disklens v__VERSION__'
-          releaseBody: 'See the assets to download this release and install.'
-          releaseDraft: true
+          releaseBody: 'See the assets below to download and install Disklens.'
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
