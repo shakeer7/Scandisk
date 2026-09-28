@@ -42,7 +42,31 @@ Disklens separates heavy filesystem operations from UI rendering:
 
 ---
 
-## 🚀 Getting Started
+## 📥 Download & Install (For End Users)
+
+> **Zero setup required.** You do **not** need Node.js, Rust, or any developer tools installed. Simply download the standalone installer for your operating system:
+
+👉 **[Download the Latest Version from Releases](https://github.com/shakeer7/disklens/releases)**
+
+### 🪟 Windows
+1. Download **`Disklens-Setup.exe`**.
+2. Double-click the installer and follow the setup wizard.
+3. Launch **Disklens** from your Start Menu or Desktop shortcut.
+
+### 🍎 macOS
+1. Download **`Disklens.dmg`** (Apple Silicon `aarch64` for M1/M2/M3/M4 or Intel `x86_64`).
+2. Open the downloaded `.dmg` and drag the **Disklens** icon into your **Applications** folder.
+3. Open Disklens from Launchpad, Spotlight, or Finder.
+
+### 🐧 Linux
+1. Download **`Disklens.AppImage`** or the **`.deb`** package.
+2. For AppImage: Right-click → Properties → Allow executing file as program (or `chmod +x`), then double-click to run immediately.
+
+---
+
+## 🛠️ Building from Source (For Developers)
+
+If you wish to contribute or build the application from source code:
 
 ### Prerequisites
 
@@ -50,7 +74,7 @@ Disklens separates heavy filesystem operations from UI rendering:
 - [Rust & Cargo](https://rustup.rs) (stable)
 - Platform C++ build tools (Visual Studio C++ Build Tools on Windows, Xcode CLI on macOS)
 
-### Installation & Development
+### Local Development Setup
 
 ```bash
 # 1. Clone the repository
