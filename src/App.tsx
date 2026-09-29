@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -13,6 +13,27 @@ import {
   Treemap, PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer,
   XAxis, YAxis, CartesianGrid, Area, AreaChart
 } from 'recharts';
+
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', color: 'red', background: '#222', margin: '20px', borderRadius: '8px' }}>
+          <h3>Dashboard Error</h3>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>{String(this.state.error?.stack || this.state.error)}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 type TreeNode = {
   name: string;
@@ -405,6 +426,7 @@ export default function App() {
 
           {/* Dashboard Tab */}
           {stats && !loading && activeTab === 'dashboard' && (
+            <ErrorBoundary>
             <div className="animate-fade-in delay-1">
               {/* Top Insights Row */}
               <div style={{ position: 'relative', marginBottom: '24px' }}>
@@ -580,6 +602,7 @@ export default function App() {
                 </div>
               </div>
             </div>
+            </ErrorBoundary>
           )}
 
           {/* Re-use tables for other tabs, styled beautifully */}
@@ -923,20 +946,41 @@ export default function App() {
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 500 }}>Theme</label>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button 
-                  className={`btn ${theme === 'light' ? 'btn-primary' : ''}`}
-                  onClick={() => setTheme('light')}
-                  style={{ flex: 1, justifyContent: 'center', padding: '12px' }}
-                >
-                  <Sun size={18} /> Light Mode
-                </button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <button 
                   className={`btn ${theme === 'dark' ? 'btn-primary' : ''}`}
                   onClick={() => setTheme('dark')}
-                  style={{ flex: 1, justifyContent: 'center', padding: '12px' }}
+                  style={{ justifyContent: 'center', padding: '12px' }}
                 >
-                  <Moon size={18} /> Dark Mode
+                  <Moon size={16} /> Dark
+                </button>
+                <button 
+                  className={`btn ${theme === 'light' ? 'btn-primary' : ''}`}
+                  onClick={() => setTheme('light')}
+                  style={{ justifyContent: 'center', padding: '12px' }}
+                >
+                  <Sun size={16} /> Light
+                </button>
+                <button 
+                  className={`btn ${theme === 'material' ? 'btn-primary' : ''}`}
+                  onClick={() => setTheme('material')}
+                  style={{ justifyContent: 'center', padding: '12px', gridColumn: 'span 2' }}
+                >
+                  Material Design
+                </button>
+                <button 
+                  className={`btn ${theme === 'liquid-glass' ? 'btn-primary' : ''}`}
+                  onClick={() => setTheme('liquid-glass')}
+                  style={{ justifyContent: 'center', padding: '12px' }}
+                >
+                  Liquid Glass
+                </button>
+                <button 
+                  className={`btn ${theme === 'neumorphism' ? 'btn-primary' : ''}`}
+                  onClick={() => setTheme('neumorphism')}
+                  style={{ justifyContent: 'center', padding: '12px' }}
+                >
+                  Neumorphism
                 </button>
               </div>
             </div>
