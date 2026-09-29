@@ -249,6 +249,14 @@ body::after {
   background: var(--text-muted);
 }
 
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Cards */
 .card {
   background: var(--bg-card);

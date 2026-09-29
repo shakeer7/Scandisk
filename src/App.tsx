@@ -235,18 +235,18 @@ export default function App() {
     .slice(0, 8)
     .map(([name, value]) => ({ name, value })) : [];
 
-  const treeMapData = stats?.children.map(c => ({
+  const treeMapData = stats?.children?.map(c => ({
     name: c.name,
     size: c.size,
     path: c.path,
     is_dir: c.is_dir,
   })) || [];
 
-  const cleanupFiles = stats?.largest_files.filter(f => ['tmp', 'log', 'cache', 'bak', 'dmg', 'iso', 'old'].includes(f.ext)) || [];
+  const cleanupFiles = stats?.largest_files?.filter(f => ['tmp', 'log', 'cache', 'bak', 'dmg', 'iso', 'old'].includes(f.ext)) || [];
   const cleanupSize = cleanupFiles.reduce((acc, f) => acc + f.size, 0);
   
-  const largestFolder = stats?.children.filter(c => c.is_dir).sort((a,b) => b.size - a.size)[0];
-  const largestFile = stats?.largest_files[0];
+  const largestFolder = stats?.children?.filter(c => c.is_dir).sort((a,b) => b.size - a.size)[0];
+  const largestFile = stats?.largest_files?.[0];
   
   const activityData = stats ? generateFakeActivityData(stats.total_size) : [];
 
@@ -420,9 +420,9 @@ export default function App() {
                 
                 <div 
                   id="dashboard-scroll-container"
-                  style={{ display: 'flex', overflowX: 'auto', gap: '24px', scrollBehavior: 'smooth', padding: '4px 0', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  style={{ display: 'flex', overflowX: 'auto', gap: '24px', scrollBehavior: 'smooth', padding: '4px 0' }}
+                  className="hide-scrollbar"
                 >
-                  <style>{`#dashboard-scroll-container::-webkit-scrollbar { display: none; }`}</style>
                   
                   <div className="card insight-card" style={{ minWidth: '240px', flex: '0 0 auto' }}>
                     <div className="insight-header">
@@ -963,6 +963,9 @@ export default function App() {
 // Custom components for Treemap to look more premium
 const CustomTreemapContent = (props: any) => {
   const { root, depth, x, y, width, height, index, payload, name } = props;
+  const childrenLen = root?.children?.length || 1;
+  const colorIndex = Math.floor((index / childrenLen) * 6) % CHART_COLORS.length;
+  
   return (
     <g>
       <rect
@@ -971,7 +974,7 @@ const CustomTreemapContent = (props: any) => {
         width={width}
         height={height}
         style={{
-          fill: depth < 2 ? CHART_COLORS[Math.floor((index / root.children.length) * 6)] : '#ffffff11',
+          fill: depth < 2 ? CHART_COLORS[colorIndex] : '#ffffff11',
           stroke: 'var(--bg-card)',
           strokeWidth: 2,
           strokeOpacity: 0.8,
@@ -987,7 +990,7 @@ const CustomTreemapContent = (props: any) => {
       ) : null}
       {width > 50 && height > 45 ? (
         <text x={x + 8} y={y + 34} fill="#fff" fontSize={10} fillOpacity={0.6}>
-          {formatBytes(payload.size)}
+          {formatBytes(payload?.size || 0)}
         </text>
       ) : null}
     </g>
