@@ -6,7 +6,7 @@ import { open as shellOpen } from '@tauri-apps/plugin-shell';
 import { 
   HardDrive, Settings, Search, Trash2, Home, Folder, 
   File, LayoutDashboard, PieChart as PieChartIcon, Sun, Moon,
-  ChevronRight, ArrowLeft, ExternalLink, FolderOpen, Brush,
+  ChevronRight, ChevronLeft, ArrowLeft, ExternalLink, FolderOpen, Brush,
   Activity, Clock, AlertTriangle, Zap, HardDriveUpload
 } from 'lucide-react';
 import { 
@@ -407,42 +407,69 @@ export default function App() {
           {stats && !loading && activeTab === 'dashboard' && (
             <div className="animate-fade-in delay-1">
               {/* Top Insights Row */}
-              <div className="dashboard-grid">
-                <div className="card insight-card">
-                  <div className="insight-header">
-                    <div className="insight-icon primary"><Folder size={18} /></div>
-                    Largest Folder
-                  </div>
-                  <div className="insight-value">{largestFolder ? formatBytes(largestFolder.size) : '0 B'}</div>
-                  <div className="insight-subtext" title={largestFolder?.name}>{largestFolder?.name || '-'}</div>
-                </div>
+              <div style={{ position: 'relative', marginBottom: '24px' }}>
+                <button 
+                  onClick={() => {
+                    const el = document.getElementById('dashboard-scroll-container');
+                    if (el) el.scrollBy({ left: -300, behavior: 'smooth' });
+                  }} 
+                  style={{ position: 'absolute', left: '-16px', top: '50%', transform: 'translateY(-50%)', zIndex: 10, background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-main)', boxShadow: 'var(--shadow-md)' }}
+                >
+                  <ChevronLeft size={20} />
+                </button>
                 
-                <div className="card insight-card">
-                  <div className="insight-header">
-                    <div className="insight-icon warning"><File size={18} /></div>
-                    Largest File
+                <div 
+                  id="dashboard-scroll-container"
+                  style={{ display: 'flex', overflowX: 'auto', gap: '24px', scrollBehavior: 'smooth', padding: '4px 0', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  <style>{`#dashboard-scroll-container::-webkit-scrollbar { display: none; }`}</style>
+                  
+                  <div className="card insight-card" style={{ minWidth: '240px', flex: '0 0 auto' }}>
+                    <div className="insight-header">
+                      <div className="insight-icon primary"><Folder size={18} /></div>
+                      Largest Folder
+                    </div>
+                    <div className="insight-value">{largestFolder ? formatBytes(largestFolder.size) : '0 B'}</div>
+                    <div className="insight-subtext" title={largestFolder?.name}>{largestFolder?.name || '-'}</div>
                   </div>
-                  <div className="insight-value">{largestFile ? formatBytes(largestFile.size) : '0 B'}</div>
-                  <div className="insight-subtext" title={largestFile?.name}>{largestFile?.name || '-'}</div>
-                </div>
-                
-                <div className="card insight-card">
-                  <div className="insight-header">
-                    <div className="insight-icon success"><HardDriveUpload size={18} /></div>
-                    Scanned Items
+                  
+                  <div className="card insight-card" style={{ minWidth: '240px', flex: '0 0 auto' }}>
+                    <div className="insight-header">
+                      <div className="insight-icon warning"><File size={18} /></div>
+                      Largest File
+                    </div>
+                    <div className="insight-value">{largestFile ? formatBytes(largestFile.size) : '0 B'}</div>
+                    <div className="insight-subtext" title={largestFile?.name}>{largestFile?.name || '-'}</div>
                   </div>
-                  <div className="insight-value">{(stats.file_count + stats.folder_count).toLocaleString()}</div>
-                  <div className="insight-subtext">{stats.file_count.toLocaleString()} files</div>
-                </div>
-                
-                <div className="card insight-card">
-                  <div className="insight-header">
-                    <div className="insight-icon danger"><Trash2 size={18} /></div>
-                    Potential Cleanup
+                  
+                  <div className="card insight-card" style={{ minWidth: '240px', flex: '0 0 auto' }}>
+                    <div className="insight-header">
+                      <div className="insight-icon success"><HardDriveUpload size={18} /></div>
+                      Scanned Items
+                    </div>
+                    <div className="insight-value">{(stats.file_count + stats.folder_count).toLocaleString()}</div>
+                    <div className="insight-subtext">{stats.file_count.toLocaleString()} files</div>
                   </div>
-                  <div className="insight-value">{formatBytes(cleanupSize)}</div>
-                  <div className="insight-subtext">{cleanupFiles.length} files found</div>
+                  
+                  <div className="card insight-card" style={{ minWidth: '240px', flex: '0 0 auto' }}>
+                    <div className="insight-header">
+                      <div className="insight-icon danger"><Trash2 size={18} /></div>
+                      Potential Cleanup
+                    </div>
+                    <div className="insight-value">{formatBytes(cleanupSize)}</div>
+                    <div className="insight-subtext">{cleanupFiles.length} files found</div>
+                  </div>
                 </div>
+
+                <button 
+                  onClick={() => {
+                    const el = document.getElementById('dashboard-scroll-container');
+                    if (el) el.scrollBy({ left: 300, behavior: 'smooth' });
+                  }} 
+                  style={{ position: 'absolute', right: '-16px', top: '50%', transform: 'translateY(-50%)', zIndex: 10, background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-main)', boxShadow: 'var(--shadow-md)' }}
+                >
+                  <ChevronRight size={20} />
+                </button>
               </div>
 
               {/* Main Overview Row */}
