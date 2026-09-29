@@ -36,6 +36,10 @@ async fn search_files(path: String, query: String) -> Result<Vec<scanner::FileIn
 
 #[tauri::command]
 async fn move_to_trash(path: String) -> Result<(), String> {
+    let path_obj = std::path::Path::new(&path);
+    if path_obj.parent().is_none() {
+        return Err("Security Error: Cannot move a root directory to trash".to_string());
+    }
     trash::delete(&path).map_err(|e| format!("Failed to move to trash: {}", e))
 }
 

@@ -264,6 +264,11 @@ pub fn search_directory(path_str: &str, query: &str) -> Result<Vec<FileInfo>, St
 pub fn move_files_by_extension(path_str: &str, extensions: Vec<String>, dest_folder_str: &str) -> Result<u64, String> {
     let path = Path::new(path_str);
     let dest_folder = Path::new(dest_folder_str);
+    
+    if path.parent().is_none() {
+        return Err("Security Error: Cannot perform batch move operations on a root directory".to_string());
+    }
+    
     if !path.exists() {
         return Err(format!("Source path does not exist: {}", path_str));
     }
