@@ -1,6 +1,6 @@
-# Contributing to Disklens
+# Contributing to Scandisk
 
-Thank you for your interest in contributing to **Disklens**! We welcome community contributions to make Disklens faster, more reliable, and visually stunning.
+Thank you for your interest in contributing to **Scandisk**! We welcome community contributions to make Scandisk faster, more reliable, and visually stunning.
 
 ## Code of Conduct
 
@@ -35,8 +35,8 @@ Please be respectful, collaborative, and constructive when reporting issues, dis
 ### Running Locally
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/disklens.git
-cd disklens
+git clone https://github.com/your-username/scandisk.git
+cd scandisk
 
 # Install dependencies
 npm install

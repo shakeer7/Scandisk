@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Disklens",
-  "version": "0.1.0",
-  "identifier": "com.shakeer.disklens",
+  "productName": "Scandisk",
+  "version": "0.2.0",
+  "identifier": "com.shakeer.scandisk",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Disklens",
+        "title": "Scandisk",
         "width": 800,
         "height": 600,
         "resizable": true,

@@ -260,3 +260,51 @@ pub fn search_directory(path_str: &str, query: &str) -> Result<Vec<FileInfo>, St
     results.sort_by(|a, b| b.size.cmp(&a.size));
     Ok(results)
 }
+
+pub fn move_files_by_extension(path_str: &str, extensions: Vec<String>, dest_folder_str: &str) -> Result<u64, String> {
+    let path = Path::new(path_str);
+    let dest_folder = Path::new(dest_folder_str);
+    if !path.exists() {
+        return Err(format!("Source path does not exist: {}", path_str));
+    }
+    if !dest_folder.exists() {
+        std::fs::create_dir_all(dest_folder).map_err(|e| format!("Failed to create destination folder: {}", e))?;
+    }
+    
+    let mut moved_count = 0;
+    let exts: Vec<String> = extensions.into_iter().map(|e| e.to_lowercase()).collect();
+    
+    for entry in jwalk::WalkDir::new(path).skip_hidden(false) {
+        let entry = match entry {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+        if entry.file_type().is_dir() { continue; }
+        
+        let ext = entry.path().extension().unwrap_or_default().to_string_lossy().to_string();
+        let ext_key = if ext.is_empty() { "unknown".to_string() } else { ext.to_lowercase() };
+        
+        if exts.contains(&ext_key) {
+            let file_name = entry.file_name();
+            let dest_file = dest_folder.join(file_name);
+            let mut final_dest = dest_file.clone();
+            let mut counter = 1;
+            while final_dest.exists() {
+                let stem = dest_file.file_stem().unwrap_or_default().to_string_lossy();
+                let ext_str = dest_file.extension().unwrap_or_default().to_string_lossy();
+                let new_name = if ext_str.is_empty() { format!("{}_{}", stem, counter) } else { format!("{}_{}.{}", stem, counter, ext_str) };
+                final_dest = dest_folder.join(new_name);
+                counter += 1;
+            }
+            if std::fs::rename(entry.path(), &final_dest).is_ok() {
+                moved_count += 1;
+            } else {
+                if std::fs::copy(entry.path(), &final_dest).is_ok() {
+                    let _ = std::fs::remove_file(entry.path());
+                    moved_count += 1;
+                }
+            }
+        }
+    }
+    Ok(moved_count)
+}

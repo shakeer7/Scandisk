@@ -1,4 +1,4 @@
-# Disklens 🔍
+# Scandisk 🔍
 
 > **A fast, beautiful, and private local disk usage analyzer for Windows, macOS, and Linux.**  
 > Effortlessly visualize what is taking up space on your hard drive and clean it up safely.
@@ -9,19 +9,19 @@
 
 ---
 
-## 📸 Disklens in Action on Windows
+## 📸 Scandisk in Action on Windows
 
-![Disklens Dashboard on Windows](docs/screenshots/disklens-windows.png)
+![Scandisk Dashboard on Windows](docs/screenshots/scandisk-windows.png)
 
 ---
 
-## 💡 What is Disklens?
+## 💡 What is Scandisk?
 
 Have you ever wondered **"Why is my hard drive full?"** or spent hours digging through nested folders trying to find massive files?
 
-**Disklens** is a modern desktop utility designed to solve that problem instantly:
+**Scandisk** is a modern desktop utility designed to solve that problem instantly:
 - **Instant Visual Breakdown**: See exactly which folders and file types consume the most gigabytes using an interactive, color-coded storage map (Treemap) and charts.
-- **Lightning Fast**: Powered by a native multithreaded Rust engine, Disklens scans hundreds of thousands of files across your drive in seconds without freezing your computer.
+- **Lightning Fast**: Powered by a native multithreaded Rust engine, Scandisk scans hundreds of thousands of files across your drive in seconds without freezing your computer.
 - **100% Private**: All scanning and calculations happen locally in memory on your PC. **No files, filenames, or disk telemetry are ever uploaded anywhere.**
 - **Safe Cleanup**: Discover space-hogging files and move them to your system **Recycle Bin / Trash** with one click. Never deletes files permanently without confirmation.
 
@@ -70,25 +70,42 @@ Have you ever wondered **"Why is my hard drive full?"** or spent hours digging t
 
 > **Zero setup required.** No command line, Node.js, or Rust needed. Simply download the installer for your computer:
 
-👉 **[Download the Latest Release](https://github.com/shakeer7/disklens/releases/latest)**
+👉 **[Download the Latest Release](https://github.com/shakeer7/scandisk/releases/latest)**
 
 ### 🪟 Windows
-1. Download **`Disklens_0.1.0_x64-setup.exe`**.
+1. Download **`Scandisk_0.2.0_x64-setup.exe`**.
 2. Double-click the installer and complete the setup.
-3. Open **Disklens** from your Start Menu or Desktop shortcut.
+3. Open **Scandisk** from your Start Menu or Desktop shortcut.
+
+> [!IMPORTANT]
+> **Windows Security Notice**  
+> Since Scandisk isn't signed with a Microsoft certificate, Windows SmartScreen may show a "Windows protected your PC" warning.
+> 
+> To run Scandisk, follow these steps:
+> 1. Click "More info" on the SmartScreen popup
+> 2. Click "Run anyway" to start the installer
 
 ### 🍎 macOS
-1. Download **`Disklens_0.1.0_aarch64.dmg`** (for Apple Silicon M1/M2/M3/M4) or Intel version.
-2. Open the downloaded `.dmg` and drag the **Disklens** icon into your **Applications** folder.
-3. Launch Disklens from Launchpad or Spotlight.
+1. Download **`Scandisk_0.2.0_aarch64.dmg`** (for Apple Silicon M1/M2/M3/M4) or Intel version.
+2. Open the downloaded `.dmg` and drag the **Scandisk** icon into your **Applications** folder.
+3. Launch Scandisk from Launchpad or Spotlight.
+
+> [!IMPORTANT]
+> **macOS Security Notice**  
+> Since Scandisk isn't signed with an Apple Developer certificate, macOS may show a "damaged and can't be opened" warning.
+> 
+> To fix this, open Terminal and run:
+> ```bash
+> sudo xattr -dr com.apple.quarantine /Applications/Scandisk.app
+> ```
 
 ### 🐧 Linux
-1. Download **`Disklens_0.1.0_amd64.AppImage`** or **`.deb`**.
-2. For AppImage: Make executable (`chmod +x Disklens*.AppImage`) and double-click to run.
+1. Download **`Scandisk_0.2.0_amd64.AppImage`** or **`.deb`**.
+2. For AppImage: Make executable (`chmod +x Scandisk*.AppImage`) and double-click to run.
 
 ---
 
-## 📖 How to Use Disklens
+## 📖 How to Use Scandisk
 
 1. **Select a Disk or Folder**: Click the **"Scan Disk"** or **"Select Folder"** button in the header and choose any drive (e.g. `C:\`, external drive) or directory.
 2. **Watch the Scan**: The live counter shows files and folders as they are processed in real time.
@@ -100,7 +117,7 @@ Have you ever wondered **"Why is my hard drive full?"** or spent hours digging t
 ## 🛡️ Privacy Guarantee
 
 > **Your data stays on your device.**  
-> Disklens does not collect analytics, track usage, or upload any file paths, names, or disk information to any remote server or cloud service.
+> Scandisk does not collect analytics, track usage, or upload any file paths, names, or disk information to any remote server or cloud service.
 
 ---
 

@@ -6,9 +6,13 @@ import { open as shellOpen } from '@tauri-apps/plugin-shell';
 import { 
   HardDrive, Settings, Search, Trash2, Home, Folder, 
   File, LayoutDashboard, PieChart as PieChartIcon, Sun, Moon,
-  ChevronRight, ArrowLeft, ExternalLink, FolderOpen, Brush
+  ChevronRight, ArrowLeft, ExternalLink, FolderOpen, Brush,
+  Activity, Clock, AlertTriangle, Zap, HardDriveUpload
 } from 'lucide-react';
-import { Treemap, PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { 
+  Treemap, PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer,
+  XAxis, YAxis, CartesianGrid, Area, AreaChart
+} from 'recharts';
 
 type TreeNode = {
   name: string;
@@ -44,15 +48,33 @@ type ProgressEvent = {
   current_size: number;
 };
 
-const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const CHART_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981'];
 
-const formatBytes = (bytes: number, decimals = 2) => {
-  if (!+bytes) return '0 Bytes';
+const formatBytes = (bytes: number, decimals = 1) => {
+  if (!+bytes) return '0 B';
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+};
+
+// Fake history data for the Storage Activity chart
+const generateFakeActivityData = (totalSize: number) => {
+  const data = [];
+  let current = totalSize * 0.8; // start at 80% of current
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    data.push({
+      name: d.toLocaleDateString(undefined, { weekday: 'short' }),
+      size: current
+    });
+    // Random fluctuation ending up at totalSize
+    current += (totalSize - current) * Math.random();
+  }
+  data[data.length - 1].size = totalSize;
+  return data;
 };
 
 export default function App() {
@@ -61,8 +83,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<ProgressEvent | null>(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [theme, setTheme] = useState(localStorage.getItem('disklens-theme') || 'light');
-  const [style, setStyle] = useState(localStorage.getItem('disklens-style') || 'material');
+  const [theme, setTheme] = useState(localStorage.getItem('scandisk-theme') || 'dark');
   const [currentPath, setCurrentPath] = useState<string>('');
   const [history, setHistory] = useState<string[]>([]);
   
@@ -70,13 +91,18 @@ export default function App() {
   const [searchResults, setSearchResults] = useState<any[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [fileFilter, setFileFilter] = useState<string | null>(null);
+  
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [isMoving, setIsMoving] = useState(false);
+  
+  const [recentScans, setRecentScans] = useState<{path: string, date: string, size: number}[]>(() => {
+    try { return JSON.parse(localStorage.getItem('scandisk-recent') || '[]'); } catch { return []; }
+  });
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    document.documentElement.setAttribute('data-style', style);
-    localStorage.setItem('disklens-theme', theme);
-    localStorage.setItem('disklens-style', style);
-  }, [theme, style]);
+    localStorage.setItem('scandisk-theme', theme);
+  }, [theme]);
 
   const selectFolder = async () => {
     try {
@@ -109,12 +135,17 @@ export default function App() {
       });
       const result: DiskStats = await invoke('scan_path', { path });
       setStats(result);
+      
+      // Save to recent scans
+      const newRecent = [{path, date: new Date().toLocaleDateString(), size: result.total_size}, ...recentScans.filter(r => r.path !== path)].slice(0, 5);
+      setRecentScans(newRecent);
+      localStorage.setItem('scandisk-recent', JSON.stringify(newRecent));
+      
     } catch (e) {
       console.error('Scan failed:', e);
       if (e !== 'Scan canceled by user') {
         alert(`Scan failed: ${e}`);
       }
-      // Revert if failed or canceled
       if (history.length > 0 && !isBack) {
         setCurrentPath(history[history.length - 1]);
         setHistory(prev => prev.slice(0, -1));
@@ -139,7 +170,6 @@ export default function App() {
     if (confirm(`Are you sure you want to move this file to the trash?\n\n${filePath}`)) {
       try {
         await invoke('move_to_trash', { path: filePath });
-        // Optimistically remove from list
         if (stats) {
           setStats({
             ...stats,
@@ -165,6 +195,32 @@ export default function App() {
     }
   };
 
+  const handleMoveSelectedTypes = async () => {
+    if (!stats || selectedTypes.length === 0) return;
+    try {
+      const dest = await open({
+        directory: true,
+        multiple: false,
+        title: 'Select Destination Folder'
+      });
+      if (dest) {
+        setIsMoving(true);
+        const movedCount: number = await invoke('move_files_by_extension', {
+          path: stats.root_path,
+          extensions: selectedTypes,
+          destFolder: dest
+        });
+        alert(`Successfully moved ${movedCount} files to ${dest}`);
+        setSelectedTypes([]);
+        scanFolder(stats.root_path);
+      }
+    } catch (e) {
+      alert(`Move failed: ${e}`);
+    } finally {
+      setIsMoving(false);
+    }
+  };
+
   const handleBack = () => {
     if (history.length > 0) {
       const prev = history[history.length - 1];
@@ -173,6 +229,7 @@ export default function App() {
     }
   };
 
+  // Derived Data
   const fileTypeData = stats ? Object.entries(stats.file_types)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8)
@@ -185,13 +242,30 @@ export default function App() {
     is_dir: c.is_dir,
   })) || [];
 
+  const cleanupFiles = stats?.largest_files.filter(f => ['tmp', 'log', 'cache', 'bak', 'dmg', 'iso', 'old'].includes(f.ext)) || [];
+  const cleanupSize = cleanupFiles.reduce((acc, f) => acc + f.size, 0);
+  
+  const largestFolder = stats?.children.filter(c => c.is_dir).sort((a,b) => b.size - a.size)[0];
+  const largestFile = stats?.largest_files[0];
+  
+  const activityData = stats ? generateFakeActivityData(stats.total_size) : [];
+
+  const diskUsed = stats ? (stats.disk_total_space - stats.disk_free_space) : 0;
+  const diskTotal = stats ? stats.disk_total_space : 1;
+  const diskUsedPercent = Math.round((diskUsed / diskTotal) * 100) || 0;
+  
+  const donutData = [
+    { name: 'Used', value: diskUsed },
+    { name: 'Free', value: stats?.disk_free_space || 1 }
+  ];
+
   return (
     <div className="app-container">
       {/* Sidebar */}
       <div className="sidebar">
         <div className="brand">
-          <HardDrive size={24} />
-          Disklens
+          <HardDrive size={24} className="brand-icon" />
+          Scandisk
         </div>
         <div className="nav-menu">
           <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
@@ -220,8 +294,8 @@ export default function App() {
         <div className="topbar">
           <div className="breadcrumb">
             {history.length > 0 && (
-              <button className="btn" style={{ padding: '4px', marginRight: '8px' }} onClick={handleBack}>
-                <ArrowLeft size={16} />
+              <button className="btn" style={{ padding: '6px', marginRight: '12px', background: 'transparent', border: 'none' }} onClick={handleBack}>
+                <ArrowLeft size={18} />
               </button>
             )}
             <Home size={16} />
@@ -231,12 +305,12 @@ export default function App() {
                 {currentPath.length > 50 ? '...' + currentPath.slice(-50) : currentPath}
               </span>
             ) : (
-              <span>Select a disk to begin</span>
+              <span>Ready to scan</span>
             )}
           </div>
           <div className="topbar-actions">
             <button className="btn btn-primary" onClick={selectFolder} disabled={loading}>
-              {loading ? 'Scanning...' : 'Scan Disk'}
+              <Search size={16} /> {loading ? 'Scanning...' : 'Scan Disk'}
             </button>
             <button className="btn" onClick={() => setShowSettings(true)}>
               <Settings size={18} />
@@ -245,159 +319,251 @@ export default function App() {
         </div>
 
         <div className="content-scroll">
+          
+          {/* Empty State */}
           {!stats && !loading && (
-            <div style={{ textAlign: 'center', marginTop: '100px', color: 'var(--text-muted)' }}>
-              <HardDrive size={64} style={{ opacity: 0.2, marginBottom: '20px' }} />
-              <h2>Welcome to Disklens</h2>
-              <p>Select a disk or folder to analyze your storage usage.</p>
-              <button className="btn btn-primary" style={{ margin: '20px auto' }} onClick={selectFolder}>
-                Choose Folder
-              </button>
+            <div className="animate-fade-in delay-1">
+              <div style={{ marginBottom: '40px' }}>
+                <h1 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '10px', letterSpacing: '-0.5px' }}>Analyze your storage.</h1>
+                <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Get instant insights into what's consuming your disk space.</p>
+              </div>
+              
+              <div className="recent-scans-row" style={{ marginBottom: '40px' }}>
+                <div className="card card-interactive drive-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }} onClick={selectFolder}>
+                  <div className="insight-icon primary" style={{ marginBottom: '20px', width: '48px', height: '48px' }}>
+                    <Search size={24} />
+                  </div>
+                  <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Select Folder or Drive</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Choose any directory to begin a deep scan.</p>
+                </div>
+                
+                {recentScans.map((scan, i) => (
+                  <div key={i} className="card card-interactive drive-card" style={{ cursor: 'pointer' }} onClick={() => scanFolder(scan.path)}>
+                    <div className="drive-header">
+                      <div className="drive-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Clock size={18} color="var(--primary)" /> Recent Scan
+                      </div>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{scan.date}</span>
+                    </div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '16px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {scan.path}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                      <span style={{ fontSize: '1.4rem', fontWeight: 700 }}>{formatBytes(scan.size)}</span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Total Scanned</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
+          {/* Loading State */}
           {loading && (
-            <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
-              <h2>Scanning...</h2>
+            <div className="animate-fade-in" style={{ padding: '40px', maxWidth: '600px', margin: '60px auto' }}>
+              <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                <Activity size={48} color="var(--primary)" style={{ animation: 'pulse-bg 2s infinite' }} />
+                <h2 style={{ marginTop: '20px', fontSize: '1.5rem' }}>Scanning Disk...</h2>
+              </div>
+              
               {progress ? (
-                <>
-                  <div className="card" style={{ marginTop: '20px' }}>
-                    <p style={{ fontFamily: 'monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '15px' }}>
-                      {progress.current_path}
-                    </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-                      <div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Files scanned</div>
-                        <div style={{ fontWeight: 600 }}>{progress.files_scanned.toLocaleString()}</div>
-                      </div>
-                      <div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Folders scanned</div>
-                        <div style={{ fontWeight: 600 }}>{progress.folders_scanned.toLocaleString()}</div>
-                      </div>
+                <div className="card">
+                  <p style={{ fontFamily: 'monospace', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '20px', fontSize: '0.85rem' }}>
+                    {progress.current_path}
+                  </p>
+                  
+                  <div className="progress-bar-bg" style={{ overflow: 'hidden', height: '6px', marginBottom: '24px' }}>
+                    <div className="progress-bar-fill" style={{ width: '100%', animation: 'pulse-opacity 1.5s infinite' }}></div>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px' }}>
+                    <div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Files</div>
+                      <div style={{ fontWeight: 600, fontSize: '1.2rem' }}>{progress.files_scanned.toLocaleString()}</div>
                     </div>
-                    <div style={{ marginBottom: '10px' }}>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Scanned size</div>
-                      <div style={{ fontWeight: 600, fontSize: '1.2rem' }}>{formatBytes(progress.current_size)}</div>
+                    <div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Folders</div>
+                      <div style={{ fontWeight: 600, fontSize: '1.2rem' }}>{progress.folders_scanned.toLocaleString()}</div>
                     </div>
-                    <div className="progress-bar-bg" style={{ overflow: 'hidden' }}>
-                      <div className="progress-bar-fill" style={{ width: '100%', animation: 'pulse-opacity 1.5s infinite' }}></div>
+                    <div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Size</div>
+                      <div style={{ fontWeight: 600, fontSize: '1.2rem', color: 'var(--primary)' }}>{formatBytes(progress.current_size)}</div>
                     </div>
                   </div>
                   
-                  <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                    <button className="btn" style={{ background: 'var(--surface-color)', color: 'var(--text-color)' }} onClick={handleCancel}>
+                  <div style={{ marginTop: '30px', textAlign: 'center' }}>
+                    <button className="btn" onClick={handleCancel}>
                       Cancel Scan
                     </button>
                   </div>
-                </>
+                </div>
               ) : (
-                <p style={{ color: 'var(--text-muted)', marginTop: '10px' }}>Starting scan engine...</p>
+                <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Warming up engine...</p>
               )}
             </div>
           )}
 
+          {/* Dashboard Tab */}
           {stats && !loading && activeTab === 'dashboard' && (
-            <>
-              {stats.disk_total_space > 0 && (
-                <div className="card" style={{ marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>{currentPath}</div>
-                    <div style={{ fontWeight: 600 }}>
-                      {Math.round(((stats.disk_total_space - stats.disk_free_space) / stats.disk_total_space) * 100)}% Used
-                    </div>
-                  </div>
-                  <div className="progress-bar-bg" style={{ height: '24px', borderRadius: '12px', marginBottom: '15px' }}>
-                    <div className="progress-bar-fill" style={{ width: `${((stats.disk_total_space - stats.disk_free_space) / stats.disk_total_space) * 100}%` }}></div>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <div><span style={{ color: 'var(--text-muted)' }}>Used:</span> {formatBytes(stats.disk_total_space - stats.disk_free_space)}</div>
-                    <div><span style={{ color: 'var(--text-muted)' }}>Free:</span> {formatBytes(stats.disk_free_space)}</div>
-                    <div><span style={{ color: 'var(--text-muted)' }}>Total:</span> {formatBytes(stats.disk_total_space)}</div>
-                  </div>
-                </div>
-              )}
-
+            <div className="animate-fade-in delay-1">
+              {/* Top Insights Row */}
               <div className="dashboard-grid">
-                <div className="card stat-card">
-                  <div className="stat-title">Folder Size</div>
-                  <div className="stat-value">{formatBytes(stats.total_size)}</div>
+                <div className="card insight-card">
+                  <div className="insight-header">
+                    <div className="insight-icon primary"><Folder size={18} /></div>
+                    Largest Folder
+                  </div>
+                  <div className="insight-value">{largestFolder ? formatBytes(largestFolder.size) : '0 B'}</div>
+                  <div className="insight-subtext" title={largestFolder?.name}>{largestFolder?.name || '-'}</div>
                 </div>
-                <div className="card stat-card">
-                  <div className="stat-title">Files</div>
-                  <div className="stat-value">{stats.file_count.toLocaleString()}</div>
+                
+                <div className="card insight-card">
+                  <div className="insight-header">
+                    <div className="insight-icon warning"><File size={18} /></div>
+                    Largest File
+                  </div>
+                  <div className="insight-value">{largestFile ? formatBytes(largestFile.size) : '0 B'}</div>
+                  <div className="insight-subtext" title={largestFile?.name}>{largestFile?.name || '-'}</div>
                 </div>
-                <div className="card stat-card">
-                  <div className="stat-title">Folders</div>
-                  <div className="stat-value">{stats.folder_count.toLocaleString()}</div>
+                
+                <div className="card insight-card">
+                  <div className="insight-header">
+                    <div className="insight-icon success"><HardDriveUpload size={18} /></div>
+                    Scanned Items
+                  </div>
+                  <div className="insight-value">{(stats.file_count + stats.folder_count).toLocaleString()}</div>
+                  <div className="insight-subtext">{stats.file_count.toLocaleString()} files</div>
+                </div>
+                
+                <div className="card insight-card">
+                  <div className="insight-header">
+                    <div className="insight-icon danger"><Trash2 size={18} /></div>
+                    Potential Cleanup
+                  </div>
+                  <div className="insight-value">{formatBytes(cleanupSize)}</div>
+                  <div className="insight-subtext">{cleanupFiles.length} files found</div>
                 </div>
               </div>
 
-              <div className="charts-row">
-                <div className="card chart-card">
-                  <h3>Storage Map</h3>
-                  {treeMapData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <Treemap
-                        data={treeMapData}
-                        dataKey="size"
-                        aspectRatio={4 / 3}
-                        stroke="var(--bg-app)"
-                        fill="var(--primary)"
-                        onClick={(e: any) => {
-                          // Drill down on click
-                          if (e && e.is_dir && e.path) {
-                            scanFolder(String(e.path));
-                          }
-                        }}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <RechartsTooltip formatter={(value: any) => formatBytes(Number(value) || 0)} />
-                      </Treemap>
-                    </ResponsiveContainer>
+              {/* Main Overview Row */}
+              <div className="overview-row">
+                {/* Radial Chart */}
+                <div className="card chart-card" style={{ alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                  <h3 style={{ position: 'absolute', top: '24px', left: '24px', margin: 0 }}>Disk Overview</h3>
+                  {stats.disk_total_space > 0 ? (
+                    <>
+                      <ResponsiveContainer width="100%" height={240}>
+                        <PieChart>
+                          <Pie
+                            data={donutData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={70}
+                            outerRadius={100}
+                            paddingAngle={2}
+                            dataKey="value"
+                            stroke="none"
+                          >
+                            <Cell fill="var(--primary)" />
+                            <Cell fill="var(--border-color)" />
+                          </Pie>
+                          <RechartsTooltip formatter={(val: any) => formatBytes(Number(val) || 0)} contentStyle={{ borderRadius: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-color)' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+                        <div style={{ fontSize: '2rem', fontWeight: 700 }}>{diskUsedPercent}%</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Used</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
+                          <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--primary)' }}></div>
+                          Used {formatBytes(diskUsed)}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
+                          <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--border-color)' }}></div>
+                          Free {formatBytes(stats.disk_free_space)}
+                        </div>
+                      </div>
+                    </>
                   ) : (
-                    <p>No data</p>
+                     <div style={{ textAlign: 'center' }}>
+                       <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '10px' }}>
+                         {formatBytes(stats.total_size)}
+                       </div>
+                       <div style={{ color: 'var(--text-muted)' }}>Total Scanned</div>
+                     </div>
                   )}
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '10px' }}>
-                    Click on a folder rectangle to scan inside it.
-                  </p>
                 </div>
+
+                {/* Storage Breakdown Treemap */}
                 <div className="card chart-card">
-                  <h3>Top File Types</h3>
-                  {fileTypeData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={fileTypeData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
-                          paddingAngle={5}
-                          dataKey="value"
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h3 style={{ margin: 0 }}>Storage Breakdown</h3>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Click to zoom in</span>
+                  </div>
+                  {treeMapData.length > 0 ? (
+                    <div style={{ flex: 1, minHeight: 0 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <Treemap
+                          data={treeMapData}
+                          dataKey="size"
+                          aspectRatio={4 / 3}
+                          stroke="var(--bg-card)"
+                          fill="var(--primary)"
+                          content={<CustomTreemapContent />}
+                          onClick={(e: any) => {
+                            if (e && e.is_dir && e.path) {
+                              scanFolder(String(e.path));
+                            }
+                          }}
+                          style={{ cursor: 'pointer' }}
                         >
-                          {fileTypeData.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <RechartsTooltip formatter={(value: any) => formatBytes(Number(value) || 0)} />
-                      </PieChart>
-                    </ResponsiveContainer>
+                          <RechartsTooltip content={<CustomTooltip />} />
+                        </Treemap>
+                      </ResponsiveContainer>
+                    </div>
                   ) : (
-                    <p>No data</p>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>No folders found</div>
                   )}
                 </div>
               </div>
-            </>
+
+              {/* Bottom Row - Storage Activity */}
+              <div className="card">
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '20px' }}>Storage Activity (Simulated)</h3>
+                <div style={{ height: '240px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={activityData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorSize" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                      <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => formatBytes(val, 0)} />
+                      <RechartsTooltip 
+                        formatter={(val: any) => formatBytes(Number(val))} 
+                        contentStyle={{ borderRadius: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-md)' }} 
+                      />
+                      <Area type="monotone" dataKey="size" stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorSize)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
           )}
 
+          {/* Re-use tables for other tabs, styled beautifully */}
           {stats && !loading && activeTab === 'files' && (
-            <div className="card">
-              <h3>Largest Files</h3>
+            <div className="card animate-fade-in delay-1">
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '20px' }}>Largest Files</h3>
               {fileFilter && (
-                <div style={{ marginBottom: '15px' }}>
-                  <span style={{ background: 'var(--primary)', color: 'white', padding: '4px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>
+                <div style={{ marginBottom: '20px' }}>
+                  <span style={{ background: 'var(--primary-glow)', color: 'var(--primary)', padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                     Filtering by .{fileFilter} 
-                    <button onClick={() => setFileFilter(null)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', marginLeft: '8px' }}>&times;</button>
+                    <button onClick={() => setFileFilter(null)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1 }}>&times;</button>
                   </span>
                 </div>
               )}
@@ -416,32 +582,35 @@ export default function App() {
                     {(fileFilter ? stats.largest_files.filter(f => f.ext === fileFilter) : stats.largest_files).map((file, i) => (
                       <tr key={i}>
                         <td style={{ fontWeight: 500 }}>{file.name}</td>
-                        <td style={{ color: 'var(--text-muted)' }} title={file.path}>
+                        <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }} title={file.path}>
                           {file.path.replace(stats.root_path, '').length > 40 
                             ? '...' + file.path.replace(stats.root_path, '').slice(-40) 
                             : file.path.replace(stats.root_path, '')}
                         </td>
                         <td><span style={{ 
-                          padding: '2px 8px', 
-                          background: 'var(--border-color)', 
+                          padding: '4px 10px', 
+                          background: 'rgba(255, 255, 255, 0.05)', 
+                          border: '1px solid var(--border-color)',
                           borderRadius: '12px',
-                          fontSize: '0.8rem'
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          letterSpacing: '0.5px'
                         }}>{file.ext.toUpperCase()}</span></td>
                         <td style={{ fontWeight: 600 }}>{formatBytes(file.size)}</td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                            <button className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => shellOpen(file.path)} title="Open File">
-                              <ExternalLink size={14} />
+                            <button className="btn" style={{ padding: '6px' }} onClick={() => shellOpen(file.path)} title="Open File">
+                              <ExternalLink size={16} />
                             </button>
-                            <button className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => {
+                            <button className="btn" style={{ padding: '6px' }} onClick={() => {
                               const parts = file.path.split(/[/\\]/);
                               parts.pop();
                               shellOpen(parts.join('/'));
                             }} title="Open Folder">
-                              <FolderOpen size={14} />
+                              <FolderOpen size={16} />
                             </button>
-                            <button className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem', color: 'var(--danger)' }} onClick={() => handleDeleteFile(file.path)} title="Move to Trash">
-                              <Trash2 size={14} />
+                            <button className="btn" style={{ padding: '6px', color: 'var(--danger)' }} onClick={() => handleDeleteFile(file.path)} title="Move to Trash">
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         </td>
@@ -454,8 +623,8 @@ export default function App() {
           )}
 
           {stats && !loading && activeTab === 'folders' && (
-            <div className="card">
-              <h3>Folders</h3>
+            <div className="card animate-fade-in delay-1">
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '20px' }}>Folders in {stats.root_path}</h3>
               <div className="table-wrapper">
                 <table>
                   <thead>
@@ -467,11 +636,11 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {stats.children.filter(c => c.is_dir).map((folder, i) => (
+                    {stats.children.filter(c => c.is_dir).sort((a,b) => b.size - a.size).map((folder, i) => (
                       <tr key={i}>
                         <td style={{ fontWeight: 500 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <Folder size={16} style={{ color: 'var(--primary)' }} />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Folder size={18} color="var(--primary)" />
                             {folder.name}
                           </div>
                         </td>
@@ -479,11 +648,11 @@ export default function App() {
                         <td style={{ fontWeight: 600 }}>{formatBytes(folder.size)}</td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                            <button className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => scanFolder(folder.path)} title="Scan Folder">
-                              <Search size={14} />
+                            <button className="btn" style={{ padding: '6px' }} onClick={() => scanFolder(folder.path)} title="Scan Folder">
+                              <Search size={16} />
                             </button>
-                            <button className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => shellOpen(folder.path)} title="Open in OS">
-                              <FolderOpen size={14} />
+                            <button className="btn" style={{ padding: '6px' }} onClick={() => shellOpen(folder.path)} title="Open in OS">
+                              <FolderOpen size={16} />
                             </button>
                           </div>
                         </td>
@@ -496,19 +665,27 @@ export default function App() {
           )}
 
           {stats && !loading && activeTab === 'types' && (
-            <div className="card">
-              <h3>File Types Breakdown</h3>
-              <div style={{ height: '300px', marginBottom: '20px' }}>
+            <div className="card animate-fade-in delay-1">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>File Types Breakdown</h3>
+                {selectedTypes.length > 0 && (
+                  <button className="btn btn-primary" onClick={handleMoveSelectedTypes} disabled={isMoving}>
+                    {isMoving ? 'Moving...' : `Move ${selectedTypes.length} Types to Folder`}
+                  </button>
+                )}
+              </div>
+              <div style={{ height: '300px', marginBottom: '30px' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={fileTypeData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
+                      innerRadius={80}
+                      outerRadius={120}
                       paddingAngle={2}
                       dataKey="value"
+                      stroke="none"
                       onClick={(data) => {
                         if (data && data.name) {
                           setFileFilter(data.name);
@@ -518,10 +695,13 @@ export default function App() {
                       style={{ cursor: 'pointer' }}
                     >
                       {fileTypeData.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={`hsl(${(index * 360) / 8}, 70%, 50%)`} />
+                        <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                       ))}
                     </Pie>
-                    <RechartsTooltip formatter={(val: any) => formatBytes(Number(val) || 0)} />
+                    <RechartsTooltip 
+                      formatter={(val: any) => formatBytes(Number(val))} 
+                      contentStyle={{ borderRadius: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-md)' }} 
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -529,16 +709,53 @@ export default function App() {
                 <table>
                   <thead>
                     <tr>
+                      <th style={{ width: '40px' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedTypes.length === Object.keys(stats.file_types).slice(0, 20).length && selectedTypes.length > 0}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedTypes(Object.entries(stats.file_types).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([ext]) => ext));
+                            } else {
+                              setSelectedTypes([]);
+                            }
+                          }}
+                        />
+                      </th>
                       <th>Extension</th>
-                      <th>Total Size</th>
+                      <th style={{ textAlign: 'right' }}>Total Size</th>
                     </tr>
                   </thead>
                   <tbody>
                     {Object.entries(stats.file_types)
                       .sort((a, b) => b[1] - a[1])
+                      .slice(0, 20)
                       .map(([ext, size], i) => (
                       <tr key={i}>
-                        <td style={{ fontWeight: 500, textTransform: 'uppercase' }}>{ext}</td>
+                        <td>
+                          <input 
+                            type="checkbox" 
+                            checked={selectedTypes.includes(ext)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedTypes(prev => [...prev, ext]);
+                              } else {
+                                setSelectedTypes(prev => prev.filter(t => t !== ext));
+                              }
+                            }}
+                          />
+                        </td>
+                        <td style={{ fontWeight: 500, textTransform: 'uppercase' }}>
+                          <span style={{ 
+                            padding: '4px 10px', 
+                            background: 'rgba(255, 255, 255, 0.05)', 
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '12px',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            letterSpacing: '0.5px'
+                          }}>{ext}</span>
+                        </td>
                         <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatBytes(size)}</td>
                       </tr>
                     ))}
@@ -549,18 +766,33 @@ export default function App() {
           )}
 
           {stats && !loading && activeTab === 'search' && (
-            <div className="card">
-              <h3>Global Search</h3>
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                <input 
-                  type="text" 
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search for files by name..." 
-                  style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-color)' }}
-                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                />
-                <button className="btn btn-primary" onClick={handleSearch} disabled={isSearching}>
+            <div className="card animate-fade-in delay-1">
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '20px' }}>Global Search</h3>
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '30px' }}>
+                <div style={{ flex: 1, position: 'relative' }}>
+                  <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <input 
+                    type="text" 
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Search for files by name..." 
+                    style={{ 
+                      width: '100%', 
+                      padding: '12px 16px 12px 44px', 
+                      borderRadius: 'var(--radius-sm)', 
+                      border: '1px solid var(--border-color)', 
+                      background: 'rgba(255,255,255,0.02)', 
+                      color: 'var(--text-main)',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'border-color 0.2s'
+                    }}
+                    onFocus={e => e.target.style.borderColor = 'var(--primary)'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
+                    onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                  />
+                </div>
+                <button className="btn btn-primary" onClick={handleSearch} disabled={isSearching} style={{ padding: '0 24px' }}>
                   {isSearching ? 'Searching...' : 'Search'}
                 </button>
               </div>
@@ -581,22 +813,22 @@ export default function App() {
                       {searchResults.map((file, i) => (
                         <tr key={i}>
                           <td style={{ fontWeight: 500 }}>{file.name}</td>
-                          <td style={{ color: 'var(--text-muted)' }} title={file.path}>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }} title={file.path}>
                             {file.path.replace(stats.root_path, '').length > 40 ? '...' + file.path.replace(stats.root_path, '').slice(-40) : file.path.replace(stats.root_path, '')}
                           </td>
-                          <td><span style={{ padding: '2px 8px', background: 'var(--border-color)', borderRadius: '12px', fontSize: '0.8rem' }}>{file.ext.toUpperCase()}</span></td>
+                          <td><span style={{ padding: '4px 10px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>{file.ext.toUpperCase()}</span></td>
                           <td style={{ fontWeight: 600 }}>{formatBytes(file.size)}</td>
                           <td style={{ textAlign: 'right' }}>
                             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                              <button className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => shellOpen(file.path)} title="Open File">
-                                <ExternalLink size={14} />
+                              <button className="btn" style={{ padding: '6px' }} onClick={() => shellOpen(file.path)}>
+                                <ExternalLink size={16} />
                               </button>
-                              <button className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => {
+                              <button className="btn" style={{ padding: '6px' }} onClick={() => {
                                 const parts = file.path.split(/[/\\]/);
                                 parts.pop();
                                 shellOpen(parts.join('/'));
-                              }} title="Open Folder">
-                                <FolderOpen size={14} />
+                              }}>
+                                <FolderOpen size={16} />
                               </button>
                             </div>
                           </td>
@@ -604,16 +836,22 @@ export default function App() {
                       ))}
                     </tbody>
                   </table>
-                  {searchResults.length === 0 && <p style={{ color: 'var(--text-muted)', textAlign: 'center', margin: '20px 0' }}>No files found.</p>}
+                  {searchResults.length === 0 && <p style={{ color: 'var(--text-muted)', textAlign: 'center', margin: '40px 0' }}>No files found.</p>}
                 </div>
               )}
             </div>
           )}
 
           {stats && !loading && activeTab === 'cleanup' && (
-            <div className="card">
-              <h3>Recommended Cleanup</h3>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '15px' }}>These are large temporary, cache, or old files that are usually safe to delete.</p>
+            <div className="card animate-fade-in delay-1">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                <div className="insight-icon danger"><AlertTriangle size={20} /></div>
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Recommended Cleanup</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Review large temporary or old files that are usually safe to delete.</p>
+                </div>
+              </div>
+              
               <div className="table-wrapper">
                 <table>
                   <thead>
@@ -625,22 +863,22 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {stats.largest_files.filter(f => ['tmp', 'log', 'cache', 'bak', 'dmg', 'iso', 'old'].includes(f.ext)).map((file, i) => (
+                    {cleanupFiles.map((file, i) => (
                       <tr key={i}>
                         <td style={{ fontWeight: 500 }}>{file.name}</td>
-                        <td style={{ color: 'var(--text-muted)' }}>
+                        <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                           {file.path.replace(stats.root_path, '').length > 40 ? '...' + file.path.replace(stats.root_path, '').slice(-40) : file.path.replace(stats.root_path, '')}
                         </td>
                         <td style={{ fontWeight: 600 }}>{formatBytes(file.size)}</td>
                         <td style={{ textAlign: 'right' }}>
-                          <button className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem', color: 'var(--danger)' }} onClick={() => handleDeleteFile(file.path)} title="Move to Trash">
+                          <button className="btn" style={{ padding: '6px 12px', color: 'white', background: 'var(--danger)', border: 'none' }} onClick={() => handleDeleteFile(file.path)}>
                             <Trash2 size={14} /> Move to Trash
                           </button>
                         </td>
                       </tr>
                     ))}
-                    {stats.largest_files.filter(f => ['tmp', 'log', 'cache', 'bak', 'dmg', 'iso', 'old'].includes(f.ext)).length === 0 && (
-                      <tr><td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No large temporary files found.</td></tr>
+                    {cleanupFiles.length === 0 && (
+                      <tr><td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>No large temporary files found! You're clean.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -654,45 +892,39 @@ export default function App() {
       {showSettings && (
         <div className="modal-overlay" onClick={() => setShowSettings(false)}>
           <div className="card modal" onClick={e => e.stopPropagation()}>
-            <h2>Settings</h2>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 600 }}>Preferences</h2>
             
-            <div className="settings-group">
-              <label>Appearance Style</label>
-              <select value={style} onChange={e => setStyle(e.target.value)}>
-                <option value="material">Material Design (Clean)</option>
-                <option value="glass">Glassmorphism (Modern)</option>
-                <option value="neumorphic">Neumorphic (Soft)</option>
-              </select>
-            </div>
-
-            <div className="settings-group">
-              <label>Theme Mode</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 500 }}>Theme</label>
+              <div style={{ display: 'flex', gap: '12px' }}>
                 <button 
                   className={`btn ${theme === 'light' ? 'btn-primary' : ''}`}
                   onClick={() => setTheme('light')}
-                  style={{ flex: 1, justifyContent: 'center' }}
+                  style={{ flex: 1, justifyContent: 'center', padding: '12px' }}
                 >
-                  <Sun size={16} /> Light
+                  <Sun size={18} /> Light Mode
                 </button>
                 <button 
                   className={`btn ${theme === 'dark' ? 'btn-primary' : ''}`}
                   onClick={() => setTheme('dark')}
-                  style={{ flex: 1, justifyContent: 'center' }}
+                  style={{ flex: 1, justifyContent: 'center', padding: '12px' }}
                 >
-                  <Moon size={16} /> Dark
+                  <Moon size={18} /> Dark Mode
                 </button>
               </div>
             </div>
             
-            <div style={{ marginTop: '10px' }}>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Your data stays on your device. Disklens does not upload your files, filenames, or disk information anywhere.
-              </p>
+            <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', marginTop: '10px' }}>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <Zap size={20} color="var(--primary)" style={{ flexShrink: 0 }} />
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
+                  <strong style={{ color: 'var(--text-main)' }}>Privacy First:</strong> Your data never leaves your device. Scandisk performs all processing locally without uploading any information.
+                </p>
+              </div>
             </div>
 
-            <button className="btn btn-primary" onClick={() => setShowSettings(false)} style={{ marginTop: '10px', justifyContent: 'center' }}>
-              Close
+            <button className="btn btn-primary" onClick={() => setShowSettings(false)} style={{ justifyContent: 'center', padding: '12px', marginTop: '10px' }}>
+              Done
             </button>
           </div>
         </div>
@@ -700,3 +932,58 @@ export default function App() {
     </div>
   );
 }
+
+// Custom components for Treemap to look more premium
+const CustomTreemapContent = (props: any) => {
+  const { root, depth, x, y, width, height, index, payload, name } = props;
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        style={{
+          fill: depth < 2 ? CHART_COLORS[Math.floor((index / root.children.length) * 6)] : '#ffffff11',
+          stroke: 'var(--bg-card)',
+          strokeWidth: 2,
+          strokeOpacity: 0.8,
+          rx: 4,
+          ry: 4,
+          transition: 'all 0.3s ease'
+        }}
+      />
+      {width > 50 && height > 30 ? (
+        <text x={x + 8} y={y + 18} fill="#fff" fontSize={12} fontWeight={500} fillOpacity={0.9}>
+          {name}
+        </text>
+      ) : null}
+      {width > 50 && height > 45 ? (
+        <text x={x + 8} y={y + 34} fill="#fff" fontSize={10} fillOpacity={0.6}>
+          {formatBytes(payload.size)}
+        </text>
+      ) : null}
+    </g>
+  );
+};
+
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div style={{ 
+        background: 'var(--bg-card)', 
+        border: '1px solid var(--border-color)',
+        padding: '12px 16px',
+        borderRadius: '8px',
+        boxShadow: 'var(--shadow-md)',
+        backdropFilter: 'blur(10px)'
+      }}>
+        <p style={{ fontWeight: 600, margin: '0 0 4px 0', color: 'var(--text-main)' }}>{data.name}</p>
+        <p style={{ color: 'var(--primary)', margin: 0, fontWeight: 500 }}>{formatBytes(data.size)}</p>
+        {data.is_dir && <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: '4px 0 0 0' }}>Click to zoom</p>}
+      </div>
+    );
+  }
+  return null;
+};

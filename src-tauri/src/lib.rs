@@ -39,12 +39,21 @@ async fn move_to_trash(path: String) -> Result<(), String> {
     trash::delete(&path).map_err(|e| format!("Failed to move to trash: {}", e))
 }
 
+#[tauri::command]
+async fn move_files_by_extension(path: String, extensions: Vec<String>, dest_folder: String) -> Result<u64, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        scanner::move_files_by_extension(&path, extensions, &dest_folder)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
     .plugin(tauri_plugin_shell::init())
     .plugin(tauri_plugin_dialog::init())
-    .invoke_handler(tauri::generate_handler![scan_path, move_to_trash, cancel_scan, search_files])
+    .invoke_handler(tauri::generate_handler![scan_path, move_to_trash, cancel_scan, search_files, move_files_by_extension])
     .setup(|app| {
       app.manage(ScanState {
           cancel_flag: Arc::new(AtomicBool::new(false)),
