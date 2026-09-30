@@ -104,6 +104,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<ProgressEvent | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showTour, setShowTour] = useState(() => !localStorage.getItem('disklens-tour-seen'));
   const [theme, setTheme] = useState(localStorage.getItem('scandisk-theme') || 'dark');
   const [currentPath, setCurrentPath] = useState<string>('');
   const [history, setHistory] = useState<string[]>([]);
@@ -942,61 +943,121 @@ export default function App() {
       {showSettings && (
         <div className="modal-overlay" onClick={() => setShowSettings(false)}>
           <div className="card modal" onClick={e => e.stopPropagation()}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 600 }}>Preferences</h2>
+            <h2>Settings</h2>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 500 }}>Theme</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <button 
-                  className={`btn ${theme === 'dark' ? 'btn-primary' : ''}`}
-                  onClick={() => setTheme('dark')}
-                  style={{ justifyContent: 'center', padding: '12px' }}
-                >
-                  <Moon size={16} /> Dark
-                </button>
+            <div className="settings-group">
+              <label>Appearance Style</label>
+              <select value={theme} onChange={e => setTheme(e.target.value)}>
+                <option value="material">Material Design (Clean)</option>
+                <option value="liquid-glass">Glassmorphism (Modern)</option>
+                <option value="neumorphism">Neumorphic (Soft)</option>
+              </select>
+            </div>
+
+            <div className="settings-group">
+              <label>Theme Mode</label>
+              <div style={{ display: 'flex', gap: '10px' }}>
                 <button 
                   className={`btn ${theme === 'light' ? 'btn-primary' : ''}`}
                   onClick={() => setTheme('light')}
-                  style={{ justifyContent: 'center', padding: '12px' }}
+                  style={{ flex: 1, justifyContent: 'center' }}
                 >
                   <Sun size={16} /> Light
                 </button>
                 <button 
-                  className={`btn ${theme === 'material' ? 'btn-primary' : ''}`}
-                  onClick={() => setTheme('material')}
-                  style={{ justifyContent: 'center', padding: '12px', gridColumn: 'span 2' }}
+                  className={`btn ${theme === 'dark' ? 'btn-primary' : ''}`}
+                  onClick={() => setTheme('dark')}
+                  style={{ flex: 1, justifyContent: 'center' }}
                 >
-                  Material Design
-                </button>
-                <button 
-                  className={`btn ${theme === 'liquid-glass' ? 'btn-primary' : ''}`}
-                  onClick={() => setTheme('liquid-glass')}
-                  style={{ justifyContent: 'center', padding: '12px' }}
-                >
-                  Liquid Glass
-                </button>
-                <button 
-                  className={`btn ${theme === 'neumorphism' ? 'btn-primary' : ''}`}
-                  onClick={() => setTheme('neumorphism')}
-                  style={{ justifyContent: 'center', padding: '12px' }}
-                >
-                  Neumorphism
+                  <Moon size={16} /> Dark
                 </button>
               </div>
             </div>
             
-            <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', marginTop: '10px' }}>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <Zap size={20} color="var(--primary)" style={{ flexShrink: 0 }} />
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-                  <strong style={{ color: 'var(--text-main)' }}>Privacy First:</strong> Your data never leaves your device. Scandisk performs all processing locally without uploading any information.
-                </p>
+            <div style={{ marginTop: '10px' }}>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Your data stays on your device. Disklens does not upload your files, filenames, or disk information anywhere.
+              </p>
+            </div>
+
+            <button className="btn btn-primary" onClick={() => setShowSettings(false)} style={{ marginTop: '10px', justifyContent: 'center' }}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      {/* Welcome Tour Modal */}
+      {showTour && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <div className="card modal" style={{ maxWidth: '500px', animation: 'fadeIn 0.4s ease' }}>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Zap size={24} color="var(--primary)" />
+              Welcome to Disklens!
+            </h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.6 }}>
+              A fast, local, and beautiful disk space analyzer. Here are a few things you can do to get started:
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '30px' }}>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '10px', borderRadius: '50%', color: 'var(--primary)' }}>
+                  <Search size={20} />
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '1.05rem', color: 'var(--text-main)' }}>Deep Scan & Analyze</h4>
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    Click "Scan Folder" or select a recent drive to instantly visualize how your storage is being used.
+                  </p>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '10px', borderRadius: '50%', color: 'var(--primary)' }}>
+                  <PieChartIcon size={20} />
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '1.05rem', color: 'var(--text-main)' }}>Visual Dashboard</h4>
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    Explore your files with interactive Treemap and Pie charts to quickly spot large space hogs.
+                  </p>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '10px', borderRadius: '50%', color: 'var(--primary)' }}>
+                  <Brush size={20} />
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '1.05rem', color: 'var(--text-main)' }}>Smart Cleanup</h4>
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    Use the Cleanup tab to find large temp files, old logs, and empty folders to safely free up space.
+                  </p>
+                </div>
               </div>
             </div>
 
-            <button className="btn btn-primary" onClick={() => setShowSettings(false)} style={{ justifyContent: 'center', padding: '12px', marginTop: '10px' }}>
-              Done
-            </button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                className="btn" 
+                onClick={() => {
+                  localStorage.setItem('disklens-tour-seen', 'true');
+                  setShowTour(false);
+                }} 
+                style={{ flex: 1, justifyContent: 'center', padding: '14px', fontSize: '1.05rem', fontWeight: 500, background: 'var(--bg-lighter)' }}
+              >
+                Skip Tour
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={() => {
+                  localStorage.setItem('disklens-tour-seen', 'true');
+                  setShowTour(false);
+                }} 
+                style={{ flex: 2, justifyContent: 'center', padding: '14px', fontSize: '1.05rem', fontWeight: 600 }}
+              >
+                Get Started
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -539,3 +539,34 @@ tr:hover td {
 .delay-1 { animation-delay: 0.1s; opacity: 0; }
 .delay-2 { animation-delay: 0.2s; opacity: 0; }
 .delay-3 { animation-delay: 0.3s; opacity: 0; }
+
+.settings-group {
+  margin-bottom: 20px;
+}
+.settings-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+.settings-group select {
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  outline: none;
+}
+.settings-group select:focus {
+  border-color: var(--primary);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  transform: rotateX(180deg);
+}
+
+.table-wrapper table {
+  transform: rotateX(180deg);
+}
