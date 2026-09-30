@@ -57,12 +57,16 @@ Have you ever wondered **"Why is my hard drive full?"** or spent hours digging t
 - Automatically highlights large temporary files, logs, and caches (`.tmp`, `.log`, `.bak`, `.iso`, `.dmg`).
 - Safe deletion via your operating system's Recycle Bin / Trash mechanism.
 
-### 🎨 8. Customizable Themes & Dark Mode
-- Supports 3 tailored visual aesthetics:
-  - **Material Design**: Clean cards with familiar, clear controls.
-  - **Glassmorphism**: Translucent frosted glass with blur and sleek borders.
-  - **Neumorphism**: Soft sculpted light and dark surfaces.
-- Full support for **Light** and **Dark** modes with persistent local saving.
+### 🎨 8. Clean Settings & Theme Controls
+- Fast, dedicated **Light** and **Dark** theme switching.
+- Persistent local preferences without bloated configurations.
+
+### 🚀 9. First-Time User Onboarding Tour
+- Quick guided startup tour highlighting core capabilities (Deep Scan, Visual Dashboard, Smart Cleanup).
+- Includes a **Skip Tour** option and remembers user choices across sessions.
+
+### 🔄 10. Ergonomic Table Scrolling
+- Convenient top-mounted horizontal scrollbar on large folder tables, enabling easy horizontal scrolling without needing to scroll down to the bottom of long lists.
 
 ---
 
@@ -70,44 +74,45 @@ Have you ever wondered **"Why is my hard drive full?"** or spent hours digging t
 
 > **Zero setup required.** No command line, Node.js, or Rust needed. Simply download the installer for your computer:
 
-👉 **[Download the Latest Release](https://github.com/shakeer7/scandisk/releases/latest)**
+👉 **[Download the Latest Release (v0.2.6)](https://github.com/shakeer7/Scandisk/releases/latest)**
 
 ### 🪟 Windows
-1. Download **`Scandisk_0.2.0_x64-setup.exe`**.
+1. Download **`Disklens_0.2.6_x64-setup.exe`** (or **`.msi`**).
 2. Double-click the installer and complete the setup.
-3. Open **Scandisk** from your Start Menu or Desktop shortcut.
+3. Open **Disklens** from your Start Menu or Desktop shortcut.
 
 > [!IMPORTANT]
 > **Windows Security Notice**  
-> Since Scandisk isn't signed with a Microsoft certificate, Windows SmartScreen may show a "Windows protected your PC" warning.
+> Since Disklens isn't signed with an expensive Microsoft certificate, Windows SmartScreen may show a "Windows protected your PC" warning.
 > 
-> To run Scandisk, follow these steps:
-> 1. Click "More info" on the SmartScreen popup
-> 2. Click "Run anyway" to start the installer
+> To run Disklens, follow these steps:
+> 1. Click **"More info"** on the SmartScreen popup.
+> 2. Click **"Run anyway"** to start the installer.
 
 ### 🍎 macOS
-1. Download **`Scandisk_0.2.0_aarch64.dmg`** (for Apple Silicon M1/M2/M3/M4) or Intel version.
-2. Open the downloaded `.dmg` and drag the **Scandisk** icon into your **Applications** folder.
-3. Launch Scandisk from Launchpad or Spotlight.
+1. Download **`Disklens_0.2.6_aarch64.dmg`** (for Apple Silicon M1/M2/M3/M4/M5).
+2. Open the downloaded `.dmg` and drag the **Disklens** icon into your **Applications** folder.
+3. Launch Disklens from Launchpad or Spotlight.
 
 > [!IMPORTANT]
 > **macOS Security Notice**  
-> Since Scandisk isn't signed with an Apple Developer certificate, macOS may show a "damaged and can't be opened" warning.
+> Since Disklens isn't signed with an Apple Developer certificate, macOS may show a "damaged and can't be opened" warning.
 > 
 > To fix this, open Terminal and run:
 > ```bash
-> sudo xattr -dr com.apple.quarantine /Applications/Scandisk.app
+> sudo xattr -dr com.apple.quarantine /Applications/Disklens.app
 > ```
 
 ### 🐧 Linux
-1. Download **`Scandisk_0.2.0_amd64.AppImage`** or **`.deb`**.
-2. For AppImage: Make executable (`chmod +x Scandisk*.AppImage`) and double-click to run.
+1. Download **`disklens_0.2.6_amd64.AppImage`** or **`disklens_0.2.6_amd64.deb`**.
+2. For AppImage: Make executable (`chmod +x disklens*.AppImage`) and double-click to run.
+3. For Debian/Ubuntu: Install with `sudo dpkg -i disklens_0.2.6_amd64.deb`.
 
 ---
 
 ## 📖 How to Use Scandisk
 
-1. **Select a Disk or Folder**: Click the **"Scan Disk"** or **"Select Folder"** button in the header and choose any drive (e.g. `C:\`, external drive) or directory.
+1. **Select a Disk or Folder**: Click the **"Scan Folder"** or choose any drive/folder to start.
 2. **Watch the Scan**: The live counter shows files and folders as they are processed in real time.
 3. **Explore Visually**: Click any folder tile on the Treemap to drill in, or switch tabs on the left sidebar to inspect **Folders**, **Largest Files**, and **File Types**.
 4. **Free Up Space**: Head to the **Cleanup** tab to safely clean up unnecessary large files into the Recycle Bin.
