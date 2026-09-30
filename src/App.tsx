@@ -985,6 +985,7 @@ export default function App() {
             </button>
           </div>
         </div>
+      )}
       {/* Welcome Tour Modal */}
       {showTour && (
         <div className="modal-overlay" style={{ zIndex: 9999 }}>
