@@ -74,10 +74,10 @@ Have you ever wondered **"Why is my hard drive full?"** or spent hours digging t
 
 > **Zero setup required.** No command line, Node.js, or Rust needed. Simply download the installer for your computer:
 
-👉 **[Download the Latest Release (v0.2.6)](https://github.com/shakeer7/Scandisk/releases/latest)**
+👉 **[Download the Latest Release (v0.2.7)](https://github.com/shakeer7/Scandisk/releases/latest)**
 
 ### 🪟 Windows
-1. Download **`Disklens_0.2.6_x64-setup.exe`** (or **`.msi`**).
+1. Download **`Disklens_0.2.7_x64-setup.exe`** (or **`.msi`**).
 2. Double-click the installer and complete the setup.
 3. Open **Disklens** from your Start Menu or Desktop shortcut.
 
@@ -90,7 +90,7 @@ Have you ever wondered **"Why is my hard drive full?"** or spent hours digging t
 > 2. Click **"Run anyway"** to start the installer.
 
 ### 🍎 macOS
-1. Download **`Disklens_0.2.6_aarch64.dmg`** (for Apple Silicon M1/M2/M3/M4/M5).
+1. Download **`Disklens_0.2.7_aarch64.dmg`** (for Apple Silicon M1/M2/M3/M4/M5).
 2. Open the downloaded `.dmg` and drag the **Disklens** icon into your **Applications** folder.
 3. Launch Disklens from Launchpad or Spotlight.
 
@@ -104,9 +104,9 @@ Have you ever wondered **"Why is my hard drive full?"** or spent hours digging t
 > ```
 
 ### 🐧 Linux
-1. Download **`disklens_0.2.6_amd64.AppImage`** or **`disklens_0.2.6_amd64.deb`**.
+1. Download **`disklens_0.2.7_amd64.AppImage`** or **`disklens_0.2.7_amd64.deb`**.
 2. For AppImage: Make executable (`chmod +x disklens*.AppImage`) and double-click to run.
-3. For Debian/Ubuntu: Install with `sudo dpkg -i disklens_0.2.6_amd64.deb`.
+3. For Debian/Ubuntu: Install with `sudo dpkg -i disklens_0.2.7_amd64.deb`.
 
 ---
 

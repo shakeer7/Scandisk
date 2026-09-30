@@ -105,7 +105,8 @@ export default function App() {
   const [progress, setProgress] = useState<ProgressEvent | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showTour, setShowTour] = useState(() => !localStorage.getItem('disklens-tour-seen'));
-  const [theme, setTheme] = useState(localStorage.getItem('scandisk-theme') || 'dark');
+  const [theme, setTheme] = useState(() => localStorage.getItem('disklens-theme') || 'light');
+  const [style, setStyle] = useState(() => localStorage.getItem('disklens-style') || 'material');
   const [currentPath, setCurrentPath] = useState<string>('');
   const [history, setHistory] = useState<string[]>([]);
   
@@ -123,8 +124,10 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('scandisk-theme', theme);
-  }, [theme]);
+    document.documentElement.setAttribute('data-style', style);
+    localStorage.setItem('disklens-theme', theme);
+    localStorage.setItem('disklens-style', style);
+  }, [theme, style]);
 
   const selectFolder = async () => {
     try {
@@ -947,10 +950,10 @@ export default function App() {
             
             <div className="settings-group">
               <label>Appearance Style</label>
-              <select value={theme} onChange={e => setTheme(e.target.value)}>
+              <select value={style} onChange={e => setStyle(e.target.value)}>
                 <option value="material">Material Design (Clean)</option>
-                <option value="liquid-glass">Glassmorphism (Modern)</option>
-                <option value="neumorphism">Neumorphic (Soft)</option>
+                <option value="glass">Glassmorphism (Modern)</option>
+                <option value="neumorphic">Neumorphic (Soft)</option>
               </select>
             </div>
 
