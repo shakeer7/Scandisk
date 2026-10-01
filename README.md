@@ -74,39 +74,39 @@ Have you ever wondered **"Why is my hard drive full?"** or spent hours digging t
 
 > **Zero setup required.** No command line, Node.js, or Rust needed. Simply download the installer for your computer:
 
-👉 **[Download the Latest Release (v0.2.7)](https://github.com/shakeer7/Scandisk/releases/latest)**
+👉 **[Download the Latest Release (v0.2.8)](https://github.com/shakeer7/Scandisk/releases/latest)**
 
 ### 🪟 Windows
-1. Download **`Disklens_0.2.7_x64-setup.exe`** (or **`.msi`**).
+1. Download **`scandisk_0.2.8_x64-setup.exe`** (or **`.msi`**).
 2. Double-click the installer and complete the setup.
-3. Open **Disklens** from your Start Menu or Desktop shortcut.
+3. Open **scandisk** from your Start Menu or Desktop shortcut.
 
 > [!IMPORTANT]
 > **Windows Security Notice**  
-> Since Disklens isn't signed with an expensive Microsoft certificate, Windows SmartScreen may show a "Windows protected your PC" warning.
+> Since scandisk isn't signed with an expensive Microsoft certificate, Windows SmartScreen may show a "Windows protected your PC" warning.
 > 
-> To run Disklens, follow these steps:
+> To run scandisk, follow these steps:
 > 1. Click **"More info"** on the SmartScreen popup.
 > 2. Click **"Run anyway"** to start the installer.
 
 ### 🍎 macOS
-1. Download **`Disklens_0.2.7_aarch64.dmg`** (for Apple Silicon M1/M2/M3/M4/M5).
-2. Open the downloaded `.dmg` and drag the **Disklens** icon into your **Applications** folder.
-3. Launch Disklens from Launchpad or Spotlight.
+1. Download **`scandisk_0.2.8_aarch64.dmg`** (for Apple Silicon M1/M2/M3/M4/M5).
+2. Open the downloaded `.dmg` and drag the **scandisk** icon into your **Applications** folder.
+3. Launch scandisk from Launchpad or Spotlight.
 
 > [!IMPORTANT]
 > **macOS Security Notice**  
-> Since Disklens isn't signed with an Apple Developer certificate, macOS may show a "damaged and can't be opened" warning.
+> Since scandisk isn't signed with an Apple Developer certificate, macOS may show a "damaged and can't be opened" warning.
 > 
 > To fix this, open Terminal and run:
 > ```bash
-> sudo xattr -dr com.apple.quarantine /Applications/Disklens.app
+> sudo xattr -dr com.apple.quarantine /Applications/scandisk.app
 > ```
 
 ### 🐧 Linux
-1. Download **`disklens_0.2.7_amd64.AppImage`** or **`disklens_0.2.7_amd64.deb`**.
-2. For AppImage: Make executable (`chmod +x disklens*.AppImage`) and double-click to run.
-3. For Debian/Ubuntu: Install with `sudo dpkg -i disklens_0.2.7_amd64.deb`.
+1. Download **`scandisk_0.2.8_amd64.AppImage`** or **`scandisk_0.2.8_amd64.deb`**.
+2. For AppImage: Make executable (`chmod +x scandisk*.AppImage`) and double-click to run.
+3. For Debian/Ubuntu: Install with `sudo dpkg -i scandisk_0.2.8_amd64.deb`.
 
 ---
 

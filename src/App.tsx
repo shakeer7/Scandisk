@@ -104,9 +104,9 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<ProgressEvent | null>(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [showTour, setShowTour] = useState(() => !localStorage.getItem('disklens-tour-seen'));
-  const [theme, setTheme] = useState(() => localStorage.getItem('disklens-theme') || 'light');
-  const [style, setStyle] = useState(() => localStorage.getItem('disklens-style') || 'material');
+  const [showTour, setShowTour] = useState(() => !localStorage.getItem('scandisk-tour-seen'));
+  const [theme, setTheme] = useState(() => localStorage.getItem('scandisk-theme') || 'light');
+  const [style, setStyle] = useState(() => localStorage.getItem('scandisk-style') || 'material');
   const [currentPath, setCurrentPath] = useState<string>('');
   const [history, setHistory] = useState<string[]>([]);
   
@@ -125,8 +125,8 @@ export default function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.setAttribute('data-style', style);
-    localStorage.setItem('disklens-theme', theme);
-    localStorage.setItem('disklens-style', style);
+    localStorage.setItem('scandisk-theme', theme);
+    localStorage.setItem('scandisk-style', style);
   }, [theme, style]);
 
   const selectFolder = async () => {
@@ -952,7 +952,6 @@ export default function App() {
               <label>Appearance Style</label>
               <select value={style} onChange={e => setStyle(e.target.value)}>
                 <option value="material">Material Design (Clean)</option>
-                <option value="glass">Glassmorphism (Modern)</option>
                 <option value="neumorphic">Neumorphic (Soft)</option>
               </select>
             </div>
@@ -979,7 +978,7 @@ export default function App() {
             
             <div style={{ marginTop: '10px' }}>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Your data stays on your device. Disklens does not upload your files, filenames, or disk information anywhere.
+                Your data stays on your device. scandisk does not upload your files, filenames, or disk information anywhere.
               </p>
             </div>
 
@@ -995,7 +994,7 @@ export default function App() {
           <div className="card modal" style={{ maxWidth: '500px', animation: 'fadeIn 0.4s ease' }}>
             <h2 style={{ fontSize: '1.5rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <Zap size={24} color="var(--primary)" />
-              Welcome to Disklens!
+              Welcome to scandisk!
             </h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.6 }}>
               A fast, local, and beautiful disk space analyzer. Here are a few things you can do to get started:
@@ -1043,7 +1042,7 @@ export default function App() {
               <button 
                 className="btn" 
                 onClick={() => {
-                  localStorage.setItem('disklens-tour-seen', 'true');
+                  localStorage.setItem('scandisk-tour-seen', 'true');
                   setShowTour(false);
                 }} 
                 style={{ flex: 1, justifyContent: 'center', padding: '14px', fontSize: '1.05rem', fontWeight: 500, background: 'var(--bg-lighter)' }}
@@ -1053,7 +1052,7 @@ export default function App() {
               <button 
                 className="btn btn-primary" 
                 onClick={() => {
-                  localStorage.setItem('disklens-tour-seen', 'true');
+                  localStorage.setItem('scandisk-tour-seen', 'true');
                   setShowTour(false);
                 }} 
                 style={{ flex: 2, justifyContent: 'center', padding: '14px', fontSize: '1.05rem', fontWeight: 600 }}
