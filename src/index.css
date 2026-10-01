@@ -54,27 +54,6 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
-[data-style="glass"] {
-  --bg-app: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
-  --bg-card: rgba(255, 255, 255, 0.6);
-  --bg-sidebar: rgba(255, 255, 255, 0.4);
-  --border-color: rgba(255, 255, 255, 0.5);
-  --shadow-md: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-  --radius: 16px;
-}
-[data-style="glass"] .sidebar,
-[data-style="glass"] .card {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-[data-style="glass"][data-theme="dark"] {
-  --bg-app: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-  --bg-card: rgba(30, 41, 59, 0.5);
-  --bg-sidebar: rgba(30, 41, 59, 0.3);
-  --border-color: rgba(255, 255, 255, 0.1);
-  --shadow-md: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-}
 
 [data-style="neumorphic"] {
   --bg-app: #e0e5ec;
