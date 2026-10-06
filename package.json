@@ -11,22 +11,22 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@tauri-apps/plugin-dialog": "^2.8.0",
+    "@tauri-apps/plugin-dialog": "^2.8.1",
     "@tauri-apps/plugin-shell": "^2.4.0",
-    "lucide-react": "^1.48.0",
+    "lucide-react": "^1.51.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "recharts": "^3.10.1"
   },
   "devDependencies": {
-    "@tauri-apps/api": "^2.12.0",
-    "@tauri-apps/cli": "^2.12.0",
-    "@types/node": "^24.13.3",
+    "@tauri-apps/api": "^2.12.1",
+    "@tauri-apps/cli": "^2.12.1",
+    "@types/node": "^26.6.4",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
-    "typescript": "~6.0.2",
-    "vite": "^8.3.0"
+    "typescript": "~7.0.2",
+    "vite": "^8.3.2"
   }
 }
